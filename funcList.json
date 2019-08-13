@@ -1,0 +1,48 @@
+{
+	"funcs":[
+		{
+			"name": "Add Basic Item",
+			"id": "self.addBasicItem()"
+		},
+		{
+			"name": "Add Basic Block",
+			"id": "self.addBasicBlock()"
+		},
+		{
+			"name": "Add Basic Ore Block",
+			"id": "self.addBasicOreBlock()"
+		},
+		{
+			"name": "Add Tool Material",
+			"id": "self.addToolMat()"
+		},
+		{
+			"name": "Add Basic Tool",
+			"id": "self.addBasicTool()"
+		},
+		{
+			"name": "Add Basic Tool Set",
+			"id": "self.addBasicToolSet()"
+		},
+		{
+			"name": "Add Armor Material",
+			"id": "self.addArmorMat()"
+		},
+		{
+			"name": "Add Armor Set",
+			"id": "self.addArmorSet()"
+		},
+		{
+			"name": "Add Inventory Tab",
+			"id": "self.addInvTab()"
+		},
+		{
+			"name": "Add Basic Entity",
+			"id": "self.addEntity()"
+		},
+		{
+			"name": "Add Basic Biome",
+			"id": "self.addBiome()"
+		}
+	]
+}
