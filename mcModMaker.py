@@ -433,6 +433,12 @@ class easyEditor(QtWidgets.QWidget):
 				self.modInfo = json.load(fp)
 				fp.close()
 
+	def pickTexture(self, text):
+		if text == "Select Directory":
+			self.itemTextureDirPicker.clear()
+			self.itemTextureDir, _ = QtWidgets.QFileDialog.getOpenFileName(self, filter="PNG IMAGE(*.png)")
+			self.itemTextureDirPicker.addItem(self.modDir)
+			self.itemTextureDirPicker.addItem("Select Directory")
 
 	def loadFuncs(self):
 		self.funcPicker.addItem("Select an option")
@@ -448,17 +454,17 @@ class easyEditor(QtWidgets.QWidget):
 			funcList = json.load(fp)
 			for func in funcList["funcs"]:
 				if chosenFunc == func["name"]:
-					funcToRun = str(func["id"])
-					exec(funcToRun)
-					"""
-					try:
+					#try:
+					if True:
 						funcToRun = str(func["id"])
 						exec(funcToRun)
-					except Exception as e:
-						print(e)
-						self.errorLab.setText("Error: " + str(e))
-						self.show()
-					"""
+					#except Exception as e:
+						#print(e)
+						#self.errorLab.setText(f"Error: {e}")
+						#self.show()
+
+	def runExec(self, string):
+		exec(string)
 
 	def loadInvTabPicker(self):
 		invTabPicker = QtWidgets.QComboBox(self)
@@ -483,9 +489,10 @@ class easyEditor(QtWidgets.QWidget):
 		itemInGameNameLab = QtWidgets.QLabel('Item In Game Name:')
 		itemInGameNameLe = QtWidgets.QLineEdit(self)
 		itemTextureLab = QtWidgets.QLabel('Select Texture:')
-		itemTextureDir, _ = QtWidgets.QFileDialog.getOpenFileName(self, filter="PNG IMAGE(*.png)")
-		itemSubmitButton = QtWidgets.QPushButton("Add Item")
-		itemCloseButton = QtWidgets.QPushButton("Close Item Adder")
+		self.itemTextureDirPicker = QtWidgets.QComboBox(self)
+		self.itemTextureDirPicker.addItem("Select Directory")
+		self.itemSubmitButton = QtWidgets.QPushButton("Add Item")
+		self.itemCloseButton = QtWidgets.QPushButton("Close Item Adder")
 
 		addBasicItemLayout = self.main_v_box
 
@@ -515,14 +522,14 @@ class easyEditor(QtWidgets.QWidget):
 		itemTextureHbox = QtWidgets.QHBoxLayout()
 		itemTextureHbox.addStretch()
 		itemTextureHbox.addWidget(itemTextureLab)
-		itemTextureHbox.addWidget(itemTextureDir)
+		itemTextureHbox.addWidget(self.itemTextureDirPicker)
 		itemTextureHbox.addStretch()
 
 		submitBtnHbox = QtWidgets.QHBoxLayout()
 		submitBtnHbox.addStretch()
-		submitBtnHbox.addWidget(itemCloseButton)
+		submitBtnHbox.addWidget(self.itemCloseButton)
 		submitBtnHbox.addStretch()
-		submitBtnHbox.addWidget(itemSubmitButton)
+		submitBtnHbox.addWidget(self.itemSubmitButton)
 		submitBtnHbox.addStretch()
 
 		v_box = QtWidgets.QVBoxLayout()
@@ -540,11 +547,12 @@ class easyEditor(QtWidgets.QWidget):
 		self.setLayout(addBasicItemLayout)
 		self.update()
 
-		runAddItem = False
-		closeAddItem = False
+		self.runAddItem = False
+		self.closeAddItem = False
 
-		itemSubmitButton.clicked.connect(lambda: exec('runAddItem = True', {}, {"runAddItem": runAddItem, "True": True}))
-		itemCloseButton.clicked.connect(lambda: exec('closeAddItem = True', {}, {"closeAddItem": closeAddItem, "True": True}))
+		self.itemTextureDirPicker.activated[str].connect(self.pickTexture)
+		self.itemSubmitButton.clicked.connect(self.runExec('self.runAddItem = True'))
+		self.itemCloseButton.clicked.connect(self.runExec('self.closeAddItem = True'))
 
 		if runAddItem:
 			print("running runAddItem")
@@ -552,7 +560,7 @@ class easyEditor(QtWidgets.QWidget):
 			item["Name"] = itemNameLe.text()
 			item["InvTab"] = self.getInvTabFromPicker(itemInvTabPicker.currentText())
 			item["InGameName"] = itemInGameNameLe.text()
-			item["TexturePath"] = itemTextureDir
+			item["TexturePath"] = self.itemTextureDir
 
 			with open(self.modDir + "/modInfo.json", 'r+') as fp:
 				data = json.load(fp)
@@ -566,7 +574,7 @@ class easyEditor(QtWidgets.QWidget):
 			#Add mod java editing here
 
 			#shutil.copyfile(itemTextureDir, self.modDir + '/src/main/resources/assets/' + self.modInfo["ModId"] + '/textures/items', )
-			source = itemTextureDir
+			source = self.itemTextureDir
 			target = self.modDir + '/src/main/resources/assets/' + self.modInfo["ModId"] + '/textures/items'
 
 			assert not os.path.isabs(source)
@@ -591,7 +599,6 @@ class easyEditor(QtWidgets.QWidget):
 			self.setLayout(self.main_v_box)
 			self.show()
 			keepOpen = False
-		print("bye")
 
 	def addBasicBlock(self):
 		midTitle = QtWidgets.QLabel('Add A Basic Block:')
