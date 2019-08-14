@@ -2,47 +2,58 @@
 	"funcs":[
 		{
 			"name": "Add Basic Item",
-			"id": "self.addBasicItem()"
+			"id": "self.addBasicItem()",
+			"state": "In-Dev"
 		},
 		{
 			"name": "Add Basic Block",
-			"id": "self.addBasicBlock()"
+			"id": "self.addBasicBlock()",
+			"state": "In-Dev"
 		},
 		{
 			"name": "Add Basic Ore Block",
-			"id": "self.addBasicOreBlock()"
+			"id": "self.addBasicOreBlock()",
+			"state": "Un-Implemented"
 		},
 		{
 			"name": "Add Tool Material",
-			"id": "self.addToolMat()"
+			"id": "self.addToolMat()",
+			"state": "Un-Implemented"
 		},
 		{
 			"name": "Add Basic Tool",
-			"id": "self.addBasicTool()"
+			"id": "self.addBasicTool()",
+			"state": "Un-Implemented"
 		},
 		{
 			"name": "Add Basic Tool Set",
-			"id": "self.addBasicToolSet()"
+			"id": "self.addBasicToolSet()",
+			"state": "Un-Implemented"
 		},
 		{
 			"name": "Add Armor Material",
-			"id": "self.addArmorMat()"
+			"id": "self.addArmorMat()",
+			"state": "Un-Implemented"
 		},
 		{
 			"name": "Add Armor Set",
-			"id": "self.addArmorSet()"
+			"id": "self.addArmorSet()",
+			"state": "Un-Implemented"
 		},
 		{
 			"name": "Add Inventory Tab",
-			"id": "self.addInvTab()"
+			"id": "self.addInvTab()",
+			"state": "Un-Implemented"
 		},
 		{
 			"name": "Add Basic Entity",
-			"id": "self.addEntity()"
+			"id": "self.addEntity()",
+			"state": "Un-Implemented"
 		},
 		{
 			"name": "Add Basic Biome",
-			"id": "self.addBiome()"
+			"id": "self.addBiome()",
+			"state": "Un-Implemented"
 		}
 	]
 }

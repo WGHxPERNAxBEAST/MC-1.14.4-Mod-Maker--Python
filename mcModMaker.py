@@ -445,7 +445,8 @@ class easyEditor(QtWidgets.QWidget):
 		with open("funcList.json", "r") as fp:
 			funcList = json.load(fp)
 			for func in funcList["funcs"]:
-				self.funcPicker.addItem(func["name"])
+				if func["state"] != "Un-Implemented":
+					self.funcPicker.addItem(func["name"])
 			fp.close()
 
 	def runFunc(self):
