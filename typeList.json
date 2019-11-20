@@ -1,0 +1,58 @@
+{
+	"items": [
+		{
+			"name": "Ingot",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Dust",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Nugget",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Rod",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Cog",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Crystal",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Gem",
+			"state": "In-Dev"
+		}
+	],
+	"blocks": [
+		{
+			"name": "Metallic",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Ore",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Stone",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Soil",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Powder",
+			"state": "In-Dev"
+		},
+		{
+			"name": "Solid Color",
+			"state": "In-Dev"
+		}
+	]
+}

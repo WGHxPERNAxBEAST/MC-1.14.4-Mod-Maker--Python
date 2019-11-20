@@ -59,3 +59,12 @@ QProgressBar {
 	border: 2px solid white;
 	border-radius: 25px;
 }
+
+QTabWidget {
+   background-color: 'Dark blue';
+   color: 'red';
+   border-color: 'black';
+   padding: 3px;
+   border-style: normal;
+   text-align: center;
+}

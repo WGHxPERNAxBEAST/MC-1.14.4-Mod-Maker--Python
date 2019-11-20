@@ -364,6 +364,7 @@ class EasyEditor(QtWidgets.QWidget):
 		super().__init__()
 		self.init_ui()
 		self.easy_editor_window = self
+		self.add_item_window = AddBasicItem()
 
 	def init_ui(self):
 		self.TitleLab = QtWidgets.QLabel('Edit An MC 1.14.4 Mod')
@@ -437,6 +438,8 @@ class EasyEditor(QtWidgets.QWidget):
 			self.modInfo = json.load(fp)
 			fp.close()
 
+
+
 	def pickTexture(self, text):
 		if text == "Select Directory":
 			self.itemTextureDirPicker.clear()
@@ -467,9 +470,6 @@ class EasyEditor(QtWidgets.QWidget):
 						#print(e)
 						#self.errorLab.setText(f"Error: {e}")
 						#self.show()
-
-	def runExec(self, string):
-		exec(string)
 
 	def loadInvTabPicker(self):
 		invTabPicker = QtWidgets.QComboBox()
@@ -612,9 +612,8 @@ class EasyEditor(QtWidgets.QWidget):
 			keepOpen = False """
 
 	def addBasicItem(self):
-		addItemWindow = AddBasicItem()
-		addItemWindow.passModInfo(self.modInfo, self.modDir)
-		addItemWindow.show()
+		self.add_item_window.passModInfo(self.modInfo, self.modDir)
+		self.add_item_window.show()
 		print("Item Adder got info and shown")
 
 	def addBasicBlock(self):
@@ -779,8 +778,11 @@ class AddBasicItem(QtWidgets.QWidget):
 		self.textureTabs.addTab(self.itemSpecificTextureTab, "Saved Texture")
 
 		self.itemTypeLab = QtWidgets.QLabel('Select Item Type:')
-		self.itemTypePicker = QtWidgets.QComboBox(self)
-		self.itemTypePicker.addItem("Select A Type")
+		self.itemTypePicker = self.loadTypePicker()
+
+		self.itemColorLab = QtWidgets.QLabel('Select Item Color:')
+		self.itemColorPicker = QtWidgets.QComboBox(self)
+		self.itemColorPicker.addItem("Select A Color")
 
 		self.itemTextureLab = QtWidgets.QLabel('Select Texture:')
 		self.itemTextureDirPicker = QtWidgets.QComboBox(self)
@@ -827,6 +829,25 @@ class AddBasicItem(QtWidgets.QWidget):
 		textureTabsHbox.addStretch()
 		textureTabsHbox.addWidget(self.textureTabs)
 		textureTabsHbox.addStretch()
+
+		itemTypeHbox = QtWidgets.QHBoxLayout()
+		itemTypeHbox.addStretch()
+		itemTypeHbox.addWidget(self.itemTypeLab)
+		itemTypeHbox.addWidget(self.itemTypePicker)
+		itemTypeHbox.addStretch()
+
+		itemColorHbox = QtWidgets.QHBoxLayout()
+		itemColorHbox.addStretch()
+		itemColorHbox.addWidget(self.itemColorLab)
+		itemColorHbox.addWidget(self.itemColorPicker)
+		itemColorHbox.addStretch()
+
+		itemTypeVbox = QtWidgets.QVBoxLayout()
+		itemTypeVbox.addStretch()
+		itemTypeVbox.addLayout(itemTypeHbox)
+		itemTypeVbox.addLayout(itemColorHbox)
+		itemTypeVbox.addStretch()
+		self.itemTypeTab.setLayout(itemTypeVbox)
 
 		itemTextureHbox = QtWidgets.QHBoxLayout()
 		itemTextureHbox.addStretch()
@@ -885,6 +906,18 @@ class AddBasicItem(QtWidgets.QWidget):
 			self.itemTextureDirPicker.addItem(self.modDir)
 			self.itemTextureDirPicker.addItem("Select Directory")
 
+	def loadTypePicker(self):
+		typePicker = QtWidgets.QComboBox()
+		typePicker.addItem("Select A Type")
+		with open("typeList.json", "r") as fp:
+			typeList = json.load(fp)
+			for type in typeList["items"]:
+				if type["state"] != "Un-Implemented":
+					typePicker.addItem(type["name"])
+			fp.close()
+		typePicker.setCurrentIndex(0)
+		return typePicker
+
 	def runAddItem(self):
 			print("running runAddItem")
 			item = dict()
@@ -932,7 +965,7 @@ class AddBasicItem(QtWidgets.QWidget):
 			json.dump(data, fp, indent=4)
 			fp.truncate()
 			fp.close()
-		EasyEditor.easy_editor_window.refreshModInfo()
+		EasyEditor.refreshModInfo()
 		self.close()
 
 
