@@ -15,8 +15,8 @@ class HomePage(QtWidgets.QWidget):
 	def __init__(self):
 		super().__init__()
 		self.init_ui()
-		self.new_mod_window = newMod()
-		self.editorWinow = easyEditor()
+		self.new_mod_window = NewMod()
+		self.editorWindow = EasyEditor()
 
 	def init_ui(self):
 		self.TitleLab = QtWidgets.QLabel('Welcome to the MC Mod Maker')
@@ -66,15 +66,15 @@ class HomePage(QtWidgets.QWidget):
 		self.close()
 
 	def loadBtn_click(self):
-		self.editorWinow.show()
+		self.editorWindow.show()
 		self.close()
 
 
-class newMod(QtWidgets.QWidget):
+class NewMod(QtWidgets.QWidget):
 	def __init__(self):
 		super().__init__()
 		self.init_ui()
-		self.setup_mod_window = setupModWindow()
+		self.setup_mod_window = SetupModWindow()
 
 	def init_ui(self):
 		self.TitleLab = QtWidgets.QLabel('Make A New MC 1.14.4 Mod')
@@ -177,11 +177,11 @@ class newMod(QtWidgets.QWidget):
 			self.update()
 
 
-class setupModWindow(QtWidgets.QWidget):
+class SetupModWindow(QtWidgets.QWidget):
 	def __init__(self):
 		super().__init__()
 		self.init_ui()
-		self.easy_editor_window = easyEditor()
+		self.easy_editor_window = EasyEditor()
 
 	def init_ui(self):
 		self.TitleLab = QtWidgets.QLabel('Making A New MC 1.14.4 Mod')
@@ -359,10 +359,11 @@ class setupModWindow(QtWidgets.QWidget):
 			return True
 
 
-class easyEditor(QtWidgets.QWidget):
+class EasyEditor(QtWidgets.QWidget):
 	def __init__(self):
 		super().__init__()
 		self.init_ui()
+		self.easy_editor_window = self
 
 	def init_ui(self):
 		self.TitleLab = QtWidgets.QLabel('Edit An MC 1.14.4 Mod')
@@ -429,9 +430,12 @@ class easyEditor(QtWidgets.QWidget):
 			self.modDir = QtWidgets.QFileDialog.getExistingDirectory()
 			self.modDirPicker.addItem(self.modDir)
 			self.modDirPicker.addItem("Select Directory")
-			with open(self.modDir + "/modInfo.json", "r") as fp:
-				self.modInfo = json.load(fp)
-				fp.close()
+			self.refreshModInfo()
+
+	def refreshModInfo(self):
+		with open(self.modDir + "/modInfo.json", "r") as fp:
+			self.modInfo = json.load(fp)
+			fp.close()
 
 	def pickTexture(self, text):
 		if text == "Select Directory":
@@ -468,7 +472,7 @@ class easyEditor(QtWidgets.QWidget):
 		exec(string)
 
 	def loadInvTabPicker(self):
-		invTabPicker = QtWidgets.QComboBox(self)
+		invTabPicker = QtWidgets.QComboBox()
 		for tab in self.modInfo["InvTabs"]:
 			invTabPicker.addItem(tab["InGameName"])
 		invTabPicker.setCurrentIndex(4)
@@ -481,6 +485,7 @@ class easyEditor(QtWidgets.QWidget):
 				tabName = tab["Name"]
 		return tabName
 
+	"""
 	def addBasicItem(self):
 		midTitle = QtWidgets.QLabel('Add A Basic Item:')
 		itemNameLab = QtWidgets.QLabel('Item Name:')
@@ -552,10 +557,15 @@ class easyEditor(QtWidgets.QWidget):
 		self.closeAddItem = False
 
 		self.itemTextureDirPicker.activated[str].connect(self.pickTexture)
-		self.itemSubmitButton.clicked.connect(self.runExec('self.runAddItem = True'))
-		self.itemCloseButton.clicked.connect(self.runExec('self.closeAddItem = True'))
+		#self.itemSubmitButton.clicked.connect(self.runExec('self.runAddItem = True'))
+		#self.itemCloseButton.clicked.connect(self.runExec('self.closeAddItem = True'))
+		self.itemSubmitButton.clicked.connect(
+			lambda: exec('runAddItem = True', {}, {"runAddItem": self.runAddItem, "True": True}))
+		self.itemCloseButton.clicked.connect(
+			lambda: exec('closeAddItem = True', {}, {"closeAddItem": self.closeAddItem, "True": True}))
+		self.itemSubmitButton.clicked.connect(lambda: (self.runAddItem = True))
 
-		if runAddItem:
+		if self.runAddItem:
 			print("running runAddItem")
 			item = dict()
 			item["Name"] = itemNameLe.text()
@@ -593,13 +603,19 @@ class easyEditor(QtWidgets.QWidget):
 				print("Unexpected error:", sys.exc_info())
 
 			print("Item Added!")
-			runAddItem = False
+			self.runAddItem = False
 
-		if closeAddItem:
+		if self.closeAddItem:
 			print("closing")
 			self.setLayout(self.main_v_box)
 			self.show()
-			keepOpen = False
+			keepOpen = False """
+
+	def addBasicItem(self):
+		addItemWindow = AddBasicItem()
+		addItemWindow.passModInfo(self.modInfo, self.modDir)
+		addItemWindow.show()
+		print("Item Adder got info and shown")
 
 	def addBasicBlock(self):
 		midTitle = QtWidgets.QLabel('Add A Basic Block:')
@@ -726,6 +742,198 @@ class easyEditor(QtWidgets.QWidget):
 	def addBiome(self):
 		foo = "bar"
 		# TO-DO
+
+
+class AddBasicItem(QtWidgets.QWidget):
+	def __init__(self):
+		super().__init__()
+		self.modInfo = {
+			"Name": "",
+			"ModId": "",
+			"Items": [],
+			"Blocks": [],
+			"ToolMats": [],
+			"ArmorMats": [],
+			"InvTabs": []
+		}
+		self.modDir = ""
+		print("Item Adder Opened")
+		self.init_ui()
+
+	def init_ui(self):
+		self.midTitle = QtWidgets.QLabel('Add A Basic Item:')
+
+		self.itemNameLab = QtWidgets.QLabel('Item Name:')
+		self.itemNameLe = QtWidgets.QLineEdit(self)
+
+		self.itemInvTabLab = QtWidgets.QLabel('Inventory Tab:')
+		self.itemInvTabPicker = self.loadInvTabPicker()
+
+		self.itemInGameNameLab = QtWidgets.QLabel('Item In Game Name:')
+		self.itemInGameNameLe = QtWidgets.QLineEdit(self)
+
+		self.itemTypeTab = QtWidgets.QWidget()
+		self.itemSpecificTextureTab = QtWidgets.QWidget()
+		self.textureTabs = QtWidgets.QTabWidget()
+		self.textureTabs.addTab(self.itemTypeTab, "Auto-Generated Texture")
+		self.textureTabs.addTab(self.itemSpecificTextureTab, "Saved Texture")
+
+		self.itemTypeLab = QtWidgets.QLabel('Select Item Type:')
+		self.itemTypePicker = QtWidgets.QComboBox(self)
+		self.itemTypePicker.addItem("Select A Type")
+
+		self.itemTextureLab = QtWidgets.QLabel('Select Texture:')
+		self.itemTextureDirPicker = QtWidgets.QComboBox(self)
+		self.itemTextureDirPicker.addItem("Select Directory")
+
+		self.itemSubmitButton = QtWidgets.QPushButton("Add Item")
+		self.itemCloseButton = QtWidgets.QPushButton("Close Item Adder")
+
+		self.main_v_box = self.addBasicItemLayout()
+		self.setLayout(self.main_v_box)
+
+		self.itemTextureDirPicker.activated[str].connect(self.pickTexture)
+		self.itemSubmitButton.clicked.connect(self.runAddItem)
+		self.itemCloseButton.clicked.connect(self.runClose)
+
+		self.setWindowTitle('MC Mod Maker')
+		print("Item Adder UI Loaded")
+
+	def addBasicItemLayout(self):
+		midTitleHbox = QtWidgets.QHBoxLayout()
+		midTitleHbox.addStretch()
+		midTitleHbox.addWidget(self.midTitle)
+		midTitleHbox.addStretch()
+
+		itemNameHbox = QtWidgets.QHBoxLayout()
+		itemNameHbox.addStretch()
+		itemNameHbox.addWidget(self.itemNameLab)
+		itemNameHbox.addWidget(self.itemNameLe)
+		itemNameHbox.addStretch()
+
+		invTabPickerHbox = QtWidgets.QHBoxLayout()
+		invTabPickerHbox.addStretch()
+		invTabPickerHbox.addWidget(self.itemInvTabLab)
+		invTabPickerHbox.addWidget(self.itemInvTabPicker)
+		invTabPickerHbox.addStretch()
+
+		gameNameHbox = QtWidgets.QHBoxLayout()
+		gameNameHbox.addStretch()
+		gameNameHbox.addWidget(self.itemInGameNameLab)
+		gameNameHbox.addWidget(self.itemInGameNameLe)
+		gameNameHbox.addStretch()
+
+		textureTabsHbox = QtWidgets.QHBoxLayout()
+		textureTabsHbox.addStretch()
+		textureTabsHbox.addWidget(self.textureTabs)
+		textureTabsHbox.addStretch()
+
+		itemTextureHbox = QtWidgets.QHBoxLayout()
+		itemTextureHbox.addStretch()
+		itemTextureHbox.addWidget(self.itemTextureLab)
+		itemTextureHbox.addWidget(self.itemTextureDirPicker)
+		itemTextureHbox.addStretch()
+		self.itemSpecificTextureTab.setLayout(itemTextureHbox)
+
+		submitBtnHbox = QtWidgets.QHBoxLayout()
+		submitBtnHbox.addStretch()
+		submitBtnHbox.addWidget(self.itemCloseButton)
+		submitBtnHbox.addStretch()
+		submitBtnHbox.addWidget(self.itemSubmitButton)
+		submitBtnHbox.addStretch()
+
+		v_box = QtWidgets.QVBoxLayout()
+		v_box.addStretch()
+		v_box.addLayout(midTitleHbox)
+		v_box.addStretch()
+		v_box.addLayout(itemNameHbox)
+		v_box.addLayout(invTabPickerHbox)
+		v_box.addLayout(gameNameHbox)
+		v_box.addLayout(textureTabsHbox)
+		v_box.addLayout(submitBtnHbox)
+		v_box.addStretch()
+
+		print("Item Adder Layout Made")
+
+		return v_box
+
+	def passModInfo(self, modInfoIn, modDirIn):
+		self.modInfo = modInfoIn
+		self.modDir = modDirIn
+		print("Mod info received by Item Adder")
+
+	def loadInvTabPicker(self):
+		invTabPicker = QtWidgets.QComboBox()
+		for tab in self.modInfo["InvTabs"]:
+			invTabPicker.addItem(tab["InGameName"])
+		invTabPicker.setCurrentIndex(4)
+		print("Inv Tab Picker Loaded for Item Adder")
+		return invTabPicker
+
+	def getInvTabFromPicker(self, pickerText):
+		tabName = "no such tab"
+		for tab in self.modInfo["InvTabs"]:
+			if pickerText == tab["InGameName"]:
+				tabName = tab["Name"]
+		print("Inv Tab received from picker for Item Adder")
+		return tabName
+
+	def pickTexture(self, text):
+		if text == "Select Directory":
+			self.itemTextureDirPicker.clear()
+			self.itemTextureDir, _ = QtWidgets.QFileDialog.getOpenFileName(self, filter="PNG IMAGE(*.png)")
+			self.itemTextureDirPicker.addItem(self.modDir)
+			self.itemTextureDirPicker.addItem("Select Directory")
+
+	def runAddItem(self):
+			print("running runAddItem")
+			item = dict()
+			item["Name"] = self.itemNameLe.text()
+			item["InvTab"] = self.getInvTabFromPicker(self.itemInvTabPicker.currentText())
+			item["InGameName"] = self.itemInGameNameLe.text()
+			item["TexturePath"] = self.itemTextureDir
+
+			with open(self.modDir + "/modInfo.json", 'r+') as fp:
+				data = json.load(fp)
+				data["Items"].append(item)
+				fp.seek(0)
+				json.dump(data, fp, indent=4)
+				fp.truncate()
+				fp.close()
+				self.modInfo = data
+
+			#Add mod java editing here
+
+			#shutil.copyfile(itemTextureDir, self.modDir + '/src/main/resources/assets/' + self.modInfo["ModId"] + '/textures/items', )
+			source = self.itemTextureDir
+			target = self.modDir + '/src/main/resources/assets/' + self.modInfo["ModId"] + '/textures/items'
+
+			assert not os.path.isabs(source)
+			target = os.path.join(target, os.path.dirname(source))
+
+			# create the folders if not already exists
+			os.makedirs(target)
+
+			# adding exception handling
+			try:
+				shutil.copy(source, target)
+			except IOError as e:
+				print("Unable to copy file. %s" % e)
+			except:
+				print("Unexpected error:", sys.exc_info())
+
+			print("Item Added!")
+
+	def runClose(self):
+		print("closing")
+		with open(self.modDir + "/modInfo.json", 'r+') as fp:
+			data = self.modInfo
+			fp.seek(0)
+			json.dump(data, fp, indent=4)
+			fp.truncate()
+			fp.close()
+		EasyEditor.easy_editor_window.refreshModInfo()
+		self.close()
 
 
 with open('PyQt5StyleSheet.css', 'r') as styleSheet:
