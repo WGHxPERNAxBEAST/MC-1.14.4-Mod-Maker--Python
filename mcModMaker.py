@@ -11,13 +11,14 @@ import imageColorizer as colorizer
 
 app = QtWidgets.QApplication(sys.argv)
 
+HOME_DIR = os.curdir
 
 class HomePage(QtWidgets.QWidget):
 	def __init__(self):
 		super().__init__()
 		self.init_ui()
-		self.new_mod_window = NewMod()
-		self.editorWindow = EasyEditor()
+		self.new_mod_window = None
+		self.editorWindow = None
 
 	def init_ui(self):
 		self.TitleLab = QtWidgets.QLabel('Welcome to the MC Mod Maker')
@@ -63,10 +64,12 @@ class HomePage(QtWidgets.QWidget):
 		self.setLayout(v_box)
 
 	def newModBtn_click(self):
+		self.new_mod_window = NewMod()
 		self.new_mod_window.show()
 		self.close()
 
 	def loadBtn_click(self):
+		self.editorWindow = EasyEditor()
 		self.editorWindow.show()
 		self.close()
 
@@ -75,7 +78,7 @@ class NewMod(QtWidgets.QWidget):
 	def __init__(self):
 		super().__init__()
 		self.init_ui()
-		self.setup_mod_window = SetupModWindow()
+		self.setup_mod_window = None
 
 	def init_ui(self):
 		self.TitleLab = QtWidgets.QLabel('Make A New MC 1.14.4 Mod')
@@ -167,6 +170,7 @@ class NewMod(QtWidgets.QWidget):
 			self.modDirPicker.addItem("Select Directory")
 
 	def startModSetup(self):
+		self.setup_mod_window = SetupModWindow()
 		self.setup_mod_window.show()
 		time.sleep(1)
 		wasSuccessful = self.setup_mod_window.setupMod(self.modDirPicker.currentText(), self.nameLe.text(), self.userNameLe.text(), self.modidLe.text())
@@ -182,7 +186,7 @@ class SetupModWindow(QtWidgets.QWidget):
 	def __init__(self):
 		super().__init__()
 		self.init_ui()
-		self.easy_editor_window = EasyEditor()
+		self.easy_editor_window = None
 
 	def init_ui(self):
 		self.TitleLab = QtWidgets.QLabel('Making A New MC 1.14.4 Mod')
@@ -271,15 +275,18 @@ class SetupModWindow(QtWidgets.QWidget):
 				modInfo["Blocks"] = emptyList
 				modInfo["ToolMats"] = emptyList
 				modInfo["ArmorMats"] = emptyList
-				InvTabs = [{"Name": "buildingBlocks", "InGameName": "Building Blocks"},
-						   {"Name": "decorations", "InGameName": "Decoration Blocks"},
-						   {"Name": "redstone", "InGameName": "Redstone"},
-						   {"Name": "transportation", "InGameName": "Transportation"},
-						   {"Name": "misc", "InGameName": "Miscellaneous"},
-						   {"Name": "food", "InGameName": "Foodstuffs"}, {"Name": "tools", "InGameName": "Tools"},
-						   {"Name": "combat", "InGameName": "Combat"}, {"Name": "brewing", "InGameName": "Brewing"},
-						   {"Name": "materials", "InGameName": "Materials"}]
-				modInfo["InvTabs"] = InvTabs
+				modInfo["InvTabs"] = [
+					{"Name": "buildingBlocks", "InGameName": "Building Blocks"},
+					{"Name": "decorations", "InGameName": "Decoration Blocks"},
+					{"Name": "redstone", "InGameName": "Redstone"},
+					{"Name": "transportation", "InGameName": "Transportation"},
+					{"Name": "misc", "InGameName": "Miscellaneous"},
+					{"Name": "food", "InGameName": "Foodstuffs"},
+					{"Name": "tools", "InGameName": "Tools"},
+					{"Name": "combat", "InGameName": "Combat"},
+					{"Name": "brewing", "InGameName": "Brewing"},
+					{"Name": "materials", "InGameName": "Materials"}
+				]
 				json.dump(modInfo, fp, indent=4)
 				fp.close()
 			self.progressBar.setValue((5 / 9) * 100)
@@ -294,7 +301,11 @@ class SetupModWindow(QtWidgets.QWidget):
 			time.sleep(0.5)
 			mainDir = newDir + "/src/main/java/" + userName + "/" + modName
 			os.makedirs(mainDir)
-			#shutil.copyfile("Templates/main.java", mainDir)
+			try:
+				shutil.copy(f"{HOME_DIR}/Templates/main.java", mainDir)
+			except Exception as e:
+				print(f"Could not copy file \'{Templates/main.java}\' into \'{mainDir}\' due to exception:{e}")
+			# shutil.copyfile("Templates/main.java", mainDir)
 			self.progressBar.setValue((7 / 9) * 100)
 			self.errorLab.setText("Adding Resource Path")
 			self.update()
@@ -357,12 +368,13 @@ class SetupModWindow(QtWidgets.QWidget):
 			self.errorLab.setText("Mod Creation Successful...Opening Easy-Editor")
 			self.update()
 			time.sleep(1)
+			self.easy_editor_window = EasyEditor(newDir)
 			self.easy_editor_window.show()
 			return True
 
 
 class EasyEditor(QtWidgets.QWidget):
-	def __init__(self):
+	def __init__(self, modDir=""):
 		super().__init__()
 		self.init_ui()
 		self.add_item_window = None
@@ -448,7 +460,7 @@ class EasyEditor(QtWidgets.QWidget):
 
 	def loadFuncs(self):
 		self.funcPicker.addItem("Select an option")
-		with open("funcList.json", "r") as fp:
+		with open(f"{HOME_DIR}/funcList.json", "r") as fp:
 			funcList = json.load(fp)
 			for func in funcList["funcs"]:
 				if func["state"] != "Un-Implemented":
@@ -909,17 +921,10 @@ class AddBasicItem(QtWidgets.QWidget):
 	def toggleTextureType(self, pressed):
 		self.textureTypeFlag = pressed
 
-	def pickTexture(self, text):
-		if text == "Select Directory":
-			self.itemTextureDirPicker.clear()
-			self.itemTextureDir, _ = QtWidgets.QFileDialog.getOpenFileName(self, filter="PNG IMAGE(*.png)")
-			self.itemTextureDirPicker.addItem(self.modDir)
-			self.itemTextureDirPicker.addItem("Select Directory")
-
 	def loadTypePicker(self):
 		typePicker = QtWidgets.QComboBox()
 		typePicker.addItem("Select A Type")
-		with open("typeList.json", "r") as fp:
+		with open(f"{HOME_DIR}/typeList.json", "r") as fp:
 			self.typeList = json.load(fp)
 			for type in self.typeList["items"]:
 				if type["state"] != "Un-Implemented":
@@ -930,7 +935,7 @@ class AddBasicItem(QtWidgets.QWidget):
 
 	def pickType(self, text):
 		if text != "Select A Type":
-			self.itemTextureTypeDir = "BaseTextures/items/" + text + ".png"
+			self.itemTextureTypeDir = f"{HOME_DIR}/BaseTextures/items/" + text + ".png"
 
 	def loadColorPicker(self):
 		colorPicker = QtWidgets.QComboBox()
