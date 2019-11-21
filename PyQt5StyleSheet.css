@@ -63,8 +63,7 @@ QProgressBar {
 QTabWidget {
    background-color: 'Dark blue';
    color: 'red';
-   border-color: 'black';
+   border: '2px solid green';
    padding: 3px;
-   border-style: normal;
    text-align: center;
 }
