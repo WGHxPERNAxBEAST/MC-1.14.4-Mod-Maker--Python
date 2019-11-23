@@ -36,10 +36,6 @@ public class main {
 	public static final String modid = "***MODID***";
 	private static final Logger logger = LogManager.getLogger(modid);
 	
-	public static final ItemGroup baItemGroup = new GroupClass("ba_items", ItemList.tut_item);
-	public static final ItemGroup baBlockGroup = new GroupClass("ba_blocks", ItemList.tut_block);
-	public static final ItemGroup baToolAndCombatGroup = new GroupClass("ba_t_and_c", ItemList.tut_pick);
-	
 	public main() {
 		
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -63,17 +59,29 @@ public class main {
 		@SubscribeEvent
 		public static void registerItems(final RegistryEvent.Register<Item> event) {
 			event.getRegistry().registerAll (
-				//ItemList.***ITEM_NAME*** = new Item(new Item.Properties().group(***ITEMINVTAB***).setRegistryName(location("***ITEM_NAME***")))
-
-				//ItemList.***BLOCKNAME*** = new ItemBlock(BlockList.***BLOCKNAME***, new Item.Properties().group(***BLOCKINVTAB***)).setRegistryName(BlockList.***BLOCKNAME***.getRegistryName())
-			);
+				//ItemList.***ITEM_NAME*** = new Item(new Item.Properties().group(***ITEMINVTAB***).setRegistryName(location("***ITEM_NAME***")))				
+				//ItemList.***TOOL_MAT_NAME***_axe = new ItemCustomAxe(ToolMatList.***TOOL_MAT_NAME***_mat, ***AXE_DAMAGE***F, ***AXE_SPEED***F, new Item.Properties().group(***TOOLINVTAB***)).setRegistryName(location("bs_axe"))
+				//ItemList.***TOOL_MAT_NAME***_hoe = new HoeItem(ToolMatList.***TOOL_MAT_NAME***_mat, ***HOE_SPEED***F, new Item.Properties().group(***TOOLINVTAB***)).setRegistryName(location("***TOOL_MAT_NAME***_hoe"))
+				//ItemList.***TOOL_MAT_NAME***_pick = new ItemCustomPickaxe(ToolMatList.***TOOL_MAT_NAME***_mat, ***PICK_DAMAGE***, ***PICK_SPEED***F, new Item.Properties().group(***TOOLINVTAB***)).setRegistryName(location("***TOOL_MAT_NAME***_pick"))
+				//ItemList.***TOOL_MAT_NAME***_shovel = new ShovelItem(ToolMatList.***TOOL_MAT_NAME***_mat, ***SHOVEL_DAMAGE***F, ***SHOVEL_SPEED***F, new Item.Properties().group(***TOOLINVTAB***)).setRegistryName(location("***TOOL_MAT_NAME***_shovel"))
+				//ItemList.***TOOL_MAT_NAME***_sword = new SwordItem(ToolMatList.***TOOL_MAT_NAME***_mat, ***SWORD_DAMAGE***, ***SWORD_SPEED***F, new Item.Properties().group(***TOOLINVTAB***)).setRegistryName(location("***TOOL_MAT_NAME***_sword"))
+				//ItemList.***ARMOR_MAT_NAME***_helmet = new ArmorItem(ArmorMatList.***ARMOR_MAT_NAME***_mat, EquipmentSlotType.HEAD, new Item.Properties().group(***ARMORINVTAB***)).setRegistryName(location("***ARMOR_MAT_NAME***_helmet"))
+				//ItemList.***ARMOR_MAT_NAME***_chestplate = new ArmorItem(ArmorMatList.***ARMOR_MAT_NAME***_mat, EquipmentSlotType.CHEST, new Item.Properties().group(***ARMORINVTAB***)).setRegistryName(location("***ARMOR_MAT_NAME***_chestplate"))
+				//ItemList.***ARMOR_MAT_NAME***_leggings = new ArmorItem(ArmorMatList.***ARMOR_MAT_NAME***_mat, EquipmentSlotType.LEGS, new Item.Properties().group(***ARMORINVTAB***)).setRegistryName(location("***ARMOR_MAT_NAME***_leggings"))
+				//ItemList.***ARMOR_MAT_NAME***_boots = new ArmorItem(ArmorMatList.***ARMOR_MAT_NAME***_mat, EquipmentSlotType.FEET, new Item.Properties().group(***ARMORINVTAB***)).setRegistryName(location("***ARMOR_MAT_NAME***_boots"))
+				//ItemList.***BLOCK_NAME*** = new ItemBlock(BlockList.***BLOCK_NAME***, new Item.Properties().group(***BLOCKINVTAB***)).setRegistryName(BlockList.***BLOCK_NAME***.getRegistryName())
+				//***NEXT_ITEM_HERE***
+				
+				);
 			logger.info("Items registered.");
 		}
 		
 		@SubscribeEvent
 		public static void registerBlocks(final RegistryEvent.Register<Block> event) {
 			event.getRegistry().registerAll (
-				//BlockList.***BLOCKNAME*** = new Block(Block.Properties.create(***BLOCKMAT***).hardnessAndResistance(***BLOCKHARDNESS***f, ***BLOCKRESISTANCE***f).lightValue(***BLOCKLIGHTVALUE***).sound(SoundType.***BLOCKSOUND***)).setRegistryName(location("***BLOCKNAME***"))
+				//BlockList.***BLOCK_NAME*** = new Block(Block.Properties.create(***BLOCK_MAT***).hardnessAndResistance(***BLOCK_HARDNESS***f, ***BLOCK_RESISTANCE***f).lightValue(***BLOCK_LIGHT_VALUE***).sound(SoundType.***BLOCK_SOUND***)).setRegistryName(location("***BLOCK_NAME***"))
+				//***NEXT_BLOCK_HERE***
+				
 			);
 			logger.info("Blocks registered.");
 		}

@@ -1,6 +1,7 @@
 import sys
 import shutil
 import os
+import inspect
 import json
 import time
 import requests
@@ -11,7 +12,8 @@ import imageColorizer as colorizer
 
 app = QtWidgets.QApplication(sys.argv)
 
-HOME_DIR = os.curdir
+HOME_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
 
 class HomePage(QtWidgets.QWidget):
 	def __init__(self):
@@ -85,10 +87,17 @@ class NewMod(QtWidgets.QWidget):
 		self.TitleLab2 = QtWidgets.QLabel('Enter Info about mod:')
 		self.userNameLab = QtWidgets.QLabel('Username:')
 		self.userNameLe = QtWidgets.QLineEdit(self)
+		regexp = QtCore.QRegExp('[a-z_A-Z0-9]{1,20}')
+		validator = QtGui.QRegExpValidator(regexp)
+		self.userNameLe.setValidator(validator)
 		self.nameLab = QtWidgets.QLabel('Mod Name:')
 		self.nameLe = QtWidgets.QLineEdit(self)
+		self.nameLe.setValidator(validator)
 		self.modidLab = QtWidgets.QLabel('ModId:')
 		self.modidLe = QtWidgets.QLineEdit(self)
+		regexp = QtCore.QRegExp('[a-z_0-9]{1,20}')
+		validator = QtGui.QRegExpValidator(regexp)
+		self.modidLe.setValidator(validator)
 		self.modDirLab = QtWidgets.QLabel('Directory:')
 		self.modDirPicker = QtWidgets.QComboBox(self)
 		self.modDirPicker.addItem("Select Directory")
@@ -231,7 +240,6 @@ class SetupModWindow(QtWidgets.QWidget):
 		self.update()
 		time.sleep(0.5)
 		try:
-		#if True:
 			mcpBot = requests.get("http://export.mcpbot.bspk.rs")
 			mcpBotHTML = htmlParser(mcpBot.text, 'html.parser')
 			snapshotNames = mcpBotHTML.find_all('td', attrs={"class":"name"})
@@ -302,9 +310,25 @@ class SetupModWindow(QtWidgets.QWidget):
 			mainDir = newDir + "/src/main/java/" + userName + "/" + modName
 			os.makedirs(mainDir)
 			try:
-				shutil.copy(f"{HOME_DIR}/Templates/main.java", mainDir)
+				templatesMain = f"{HOME_DIR}/Templates/main.java"
+				shutil.copy(templatesMain, mainDir)
 			except Exception as e:
-				print(f"Could not copy file \'{Templates/main.java}\' into \'{mainDir}\' due to exception:{e}")
+				errorString = f"Could not copy file \'{Templates/main.java}\' into \'{mainDir}\' due to exception:{e}"
+				print(errorString)
+				raise Exception(errorString)
+			shutil.copytree(f"{HOME_DIR}/Templates/lists", f"{mainDir}/lists")
+			shutil.copytree(f"{HOME_DIR}/Templates/items", f"{mainDir}/items")
+			for subdir, dirs, files in os.walk(mainDir):
+				for file in files:
+					with open(file, "r+") as f:
+						data = f.read()
+						data = data.replace("***AUTHOR***", userName)
+						data = data.replace("***MODNAME***", modName)
+						data = data.replace("***MODID***", modID)
+						f.truncate(0)
+						f.write(data)
+						f.close()
+
 			# shutil.copyfile("Templates/main.java", mainDir)
 			self.progressBar.setValue((7 / 9) * 100)
 			self.errorLab.setText("Adding Resource Path")
@@ -357,20 +381,16 @@ class SetupModWindow(QtWidgets.QWidget):
 			self.errorLab.setText("All Done!")
 			self.update()
 			time.sleep(1)
-		#"""
-		except Exception as e:
-			self.errorLab.setText("Error: " + str(e))
-			self.update()
-			return False
-		#"""
-		else:
-		#if True:
 			self.errorLab.setText("Mod Creation Successful...Opening Easy-Editor")
 			self.update()
 			time.sleep(1)
 			self.easy_editor_window = EasyEditor(newDir)
 			self.easy_editor_window.show()
 			return True
+		except Exception as e:
+			self.errorLab.setText(f"Error: {e}")
+			self.update()
+			return False
 
 
 class EasyEditor(QtWidgets.QWidget):
@@ -725,10 +745,6 @@ class EasyEditor(QtWidgets.QWidget):
 		foo = "bar"
 		# TO-DO
 
-	def addBasicTool(self):
-		foo = "bar"
-		# TO-DO
-
 	def addBasicToolSet(self):
 		foo = "bar"
 		# TO-DO
@@ -744,14 +760,6 @@ class EasyEditor(QtWidgets.QWidget):
 	def addInvTab(self):
 		foo = "bar"
 		# TODO : addInvTabb
-
-	def addEntity(self):
-		foo = "bar"
-		# TO-DO
-
-	def addBiome(self):
-		foo = "bar"
-		# TO-DO
 
 
 class AddBasicItem(QtWidgets.QWidget):
