@@ -309,18 +309,15 @@ class SetupModWindow(QtWidgets.QWidget):
 			time.sleep(0.5)
 			mainDir = newDir + "/src/main/java/" + userName + "/" + modName
 			os.makedirs(mainDir)
-			try:
-				templatesMain = f"{HOME_DIR}/Templates/main.java"
-				shutil.copy(templatesMain, mainDir)
-			except Exception as e:
-				errorString = f"Could not copy file \'{Templates/main.java}\' into \'{mainDir}\' due to exception:{e}"
-				print(errorString)
-				raise Exception(errorString)
+			templatesMain = f"{HOME_DIR}/Templates/main.java"
+			shutil.copy(templatesMain, mainDir)
 			shutil.copytree(f"{HOME_DIR}/Templates/lists", f"{mainDir}/lists")
 			shutil.copytree(f"{HOME_DIR}/Templates/items", f"{mainDir}/items")
 			for subdir, dirs, files in os.walk(mainDir):
 				for file in files:
-					with open(file, "r+") as f:
+					fileDir = os.path.join(subdir, file)
+					# print(f"Editing: {fileDir}")
+					with open(fileDir, "r+") as f:
 						data = f.read()
 						data = data.replace("***AUTHOR***", userName)
 						data = data.replace("***MODNAME***", modName)
@@ -328,8 +325,6 @@ class SetupModWindow(QtWidgets.QWidget):
 						f.truncate(0)
 						f.write(data)
 						f.close()
-
-			# shutil.copyfile("Templates/main.java", mainDir)
 			self.progressBar.setValue((7 / 9) * 100)
 			self.errorLab.setText("Adding Resource Path")
 			self.update()
@@ -397,13 +392,13 @@ class EasyEditor(QtWidgets.QWidget):
 	def __init__(self, modDir=""):
 		super().__init__()
 		self.init_ui()
+		self.modDir = modDir
 		self.add_item_window = None
 
 	def init_ui(self):
 		self.TitleLab = QtWidgets.QLabel('Edit An MC 1.14.4 Mod')
 		self.modDirLab = QtWidgets.QLabel("Mod Directory:")
-		self.modDirPicker = QtWidgets.QComboBox(self)
-		self.modDirPicker.addItem("Select Directory")
+		self.modDirPicker = self.loadDirPicker()
 		self.funcPickerLab = QtWidgets.QLabel("Function:")
 		self.funcPicker = QtWidgets.QComboBox(self)
 		self.loadFuncs()
@@ -458,13 +453,20 @@ class EasyEditor(QtWidgets.QWidget):
 
 		return v_box
 
+	def loadDirPicker(self):
+		dirPicker = QtWidgets.QComboBox(self)
+		dirPicker.addItem("Select A New Directory")
+		if self.modDir != "":
+			dirPicker.addItem(self.modDir)
+		return dirPicker
+
 	def pickNewDirectory(self, text):
-		if text == "Select Directory":
-			self.modDirPicker.clear()
+		if text == "Select A New Directory":
 			self.modDir = QtWidgets.QFileDialog.getExistingDirectory()
 			self.modDirPicker.addItem(self.modDir)
-			self.modDirPicker.addItem("Select Directory")
-			self.refreshModInfo()
+		else:
+			self.modDir = text
+		self.refreshModInfo()
 
 	def refreshModInfo(self):
 		with open(self.modDir + "/modInfo.json", "r") as fp:
@@ -489,18 +491,12 @@ class EasyEditor(QtWidgets.QWidget):
 
 	def runFunc(self):
 		chosenFunc = self.funcPicker.currentText()
-		with open("funcList.json", "r") as fp:
+		with open(f"{HOME_DIR}/funcList.json", "r") as fp:
 			funcList = json.load(fp)
 			for func in funcList["funcs"]:
 				if chosenFunc == func["name"]:
-					#try:
-					if True:
-						funcToRun = str(func["id"])
-						exec(funcToRun)
-					#except Exception as e:
-						#print(e)
-						#self.errorLab.setText(f"Error: {e}")
-						#self.show()
+					funcToRun = str(func["id"])
+					exec(funcToRun)
 
 	def loadInvTabPicker(self):
 		invTabPicker = QtWidgets.QComboBox()
@@ -515,132 +511,6 @@ class EasyEditor(QtWidgets.QWidget):
 			if pickerText == tab["InGameName"]:
 				tabName = tab["Name"]
 		return tabName
-
-	"""
-	def addBasicItem(self):
-		midTitle = QtWidgets.QLabel('Add A Basic Item:')
-		itemNameLab = QtWidgets.QLabel('Item Name:')
-		itemNameLe = QtWidgets.QLineEdit(self)
-		itemInvTabLab = QtWidgets.QLabel('Inventory Tab:')
-		itemInvTabPicker = self.loadInvTabPicker()
-		itemInGameNameLab = QtWidgets.QLabel('Item In Game Name:')
-		itemInGameNameLe = QtWidgets.QLineEdit(self)
-		itemTextureLab = QtWidgets.QLabel('Select Texture:')
-		self.itemTextureDirPicker = QtWidgets.QComboBox(self)
-		self.itemTextureDirPicker.addItem("Select Directory")
-		self.itemSubmitButton = QtWidgets.QPushButton("Add Item")
-		self.itemCloseButton = QtWidgets.QPushButton("Close Item Adder")
-
-		addBasicItemLayout = self.main_v_box
-
-		midTitleHbox = QtWidgets.QHBoxLayout()
-		midTitleHbox.addStretch()
-		midTitleHbox.addWidget(midTitle)
-		midTitleHbox.addStretch()
-
-		itemNameHbox = QtWidgets.QHBoxLayout()
-		itemNameHbox.addStretch()
-		itemNameHbox.addWidget(itemNameLab)
-		itemNameHbox.addWidget(itemNameLe)
-		itemNameHbox.addStretch()
-
-		invTabPickerHbox = QtWidgets.QHBoxLayout()
-		invTabPickerHbox.addStretch()
-		invTabPickerHbox.addWidget(itemInvTabLab)
-		invTabPickerHbox.addWidget(itemInvTabPicker)
-		invTabPickerHbox.addStretch()
-
-		gameNameHbox = QtWidgets.QHBoxLayout()
-		gameNameHbox.addStretch()
-		gameNameHbox.addWidget(itemInGameNameLab)
-		gameNameHbox.addWidget(itemInGameNameLe)
-		gameNameHbox.addStretch()
-
-		itemTextureHbox = QtWidgets.QHBoxLayout()
-		itemTextureHbox.addStretch()
-		itemTextureHbox.addWidget(itemTextureLab)
-		itemTextureHbox.addWidget(self.itemTextureDirPicker)
-		itemTextureHbox.addStretch()
-
-		submitBtnHbox = QtWidgets.QHBoxLayout()
-		submitBtnHbox.addStretch()
-		submitBtnHbox.addWidget(self.itemCloseButton)
-		submitBtnHbox.addStretch()
-		submitBtnHbox.addWidget(self.itemSubmitButton)
-		submitBtnHbox.addStretch()
-
-		v_box = QtWidgets.QVBoxLayout()
-		v_box.addStretch()
-		v_box.addLayout(midTitleHbox)
-		v_box.addStretch()
-		v_box.addLayout(itemNameHbox)
-		v_box.addLayout(invTabPickerHbox)
-		v_box.addLayout(gameNameHbox)
-		v_box.addLayout(itemTextureHbox)
-		v_box.addLayout(submitBtnHbox)
-		v_box.addStretch()
-
-		addBasicItemLayout.addLayout(v_box)
-		self.setLayout(addBasicItemLayout)
-		self.update()
-
-		self.runAddItem = False
-		self.closeAddItem = False
-
-		self.itemTextureDirPicker.activated[str].connect(self.pickTexture)
-		#self.itemSubmitButton.clicked.connect(self.runExec('self.runAddItem = True'))
-		#self.itemCloseButton.clicked.connect(self.runExec('self.closeAddItem = True'))
-		self.itemSubmitButton.clicked.connect(
-			lambda: exec('runAddItem = True', {}, {"runAddItem": self.runAddItem, "True": True}))
-		self.itemCloseButton.clicked.connect(
-			lambda: exec('closeAddItem = True', {}, {"closeAddItem": self.closeAddItem, "True": True}))
-		self.itemSubmitButton.clicked.connect(lambda: (self.runAddItem = True))
-
-		if self.runAddItem:
-			print("running runAddItem")
-			item = dict()
-			item["Name"] = itemNameLe.text()
-			item["InvTab"] = self.getInvTabFromPicker(itemInvTabPicker.currentText())
-			item["InGameName"] = itemInGameNameLe.text()
-			item["TexturePath"] = self.itemTextureDir
-
-			with open(self.modDir + "/modInfo.json", 'r+') as fp:
-				data = json.load(fp)
-				data["Items"].append(item)
-				fp.seek(0)
-				json.dump(data, fp, indent=4)
-				fp.truncate()
-				fp.close()
-				self.modInfo = data
-
-			#Add mod java editing here
-
-			#shutil.copyfile(itemTextureDir, self.modDir + '/src/main/resources/assets/' + self.modInfo["ModId"] + '/textures/items', )
-			source = self.itemTextureDir
-			target = self.modDir + '/src/main/resources/assets/' + self.modInfo["ModId"] + '/textures/items'
-
-			assert not os.path.isabs(source)
-			target = os.path.join(target, os.path.dirname(source))
-
-			# create the folders if not already exists
-			os.makedirs(target)
-
-			# adding exception handling
-			try:
-				shutil.copy(source, target)
-			except IOError as e:
-				print("Unable to copy file. %s" % e)
-			except:
-				print("Unexpected error:", sys.exc_info())
-
-			print("Item Added!")
-			self.runAddItem = False
-
-		if self.closeAddItem:
-			print("closing")
-			self.setLayout(self.main_v_box)
-			self.show()
-			keepOpen = False """
 
 	def addBasicItem(self):
 		self.add_item_window = AddBasicItem(self.modInfo, self.modDir)
