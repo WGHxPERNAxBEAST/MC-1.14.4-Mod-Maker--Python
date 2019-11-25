@@ -278,6 +278,7 @@ class SetupModWindow(QtWidgets.QWidget):
 				modInfo = dict()
 				modInfo["Name"] = modName
 				modInfo["ModId"] = modID
+				modInfo["Author"] = userName
 				modInfo["Colors"] = emptyList
 				modInfo["Items"] = emptyList
 				modInfo["Blocks"] = emptyList
@@ -391,8 +392,8 @@ class SetupModWindow(QtWidgets.QWidget):
 class EasyEditor(QtWidgets.QWidget):
 	def __init__(self, modDir=""):
 		super().__init__()
-		self.init_ui()
 		self.modDir = modDir
+		self.init_ui()
 		self.add_item_window = None
 
 	def init_ui(self):
@@ -513,7 +514,7 @@ class EasyEditor(QtWidgets.QWidget):
 		return tabName
 
 	def addBasicItem(self):
-		self.add_item_window = AddBasicItem(self.modInfo, self.modDir)
+		self.add_item_window = AddBasicItem(self)
 		self.add_item_window.show()
 		#print("Item Adder got info and shown")
 
@@ -633,14 +634,14 @@ class EasyEditor(QtWidgets.QWidget):
 
 
 class AddBasicItem(QtWidgets.QWidget):
-	def __init__(self, modInfoIn, modDirIn):
+	def __init__(self, easyEditorIn):
 		super().__init__()
-		self.textureTypeFlag = False
-		self.modInfo = modInfoIn
-		self.modDir = modDirIn
+		self.textureTypeFlag = True
+		self.easyEditor = easyEditorIn
+		self.modInfo = self.easyEditor.modInfo
+		self.modDir = self.easyEditor.modDir
 		#print("Item Adder Opened")
 		self.init_ui()
-		#self.show()
 
 	def init_ui(self):
 		self.midTitle = QtWidgets.QLabel('Add A Basic Item:')
@@ -658,9 +659,9 @@ class AddBasicItem(QtWidgets.QWidget):
 		self.itemInGameNameLe = QtWidgets.QLineEdit(self)
 
 		self.toggleTextureTypeLab = QtWidgets.QLabel('Texture Type:')
-		self.toggleTextureTypeBtn = QtWidgets.QPushButton("Auto Generated Texture")
+		self.toggleTextureTypeBtn = QtWidgets.QPushButton("Saved Texture")
 		self.toggleTextureTypeBtn.setCheckable(True)
-		self.toggleTextureTypeBtn.setToolTip("Press to have the texture automatically generated.")
+		self.toggleTextureTypeBtn.setToolTip("Press to use pre-existing texture.")
 
 		self.itemTypeTab = QtWidgets.QWidget()
 		self.itemSpecificTextureTab = QtWidgets.QWidget()
@@ -688,12 +689,12 @@ class AddBasicItem(QtWidgets.QWidget):
 
 		self.toggleTextureTypeBtn.clicked[bool].connect(self.toggleTextureType)
 		self.itemTextureDirPicker.activated[str].connect(self.pickTexture)
+		self.itemTypePicker.activated[str].connect(self.pickType)
 		self.itemColorPicker.activated[str].connect(self.pickColor)
 		self.itemSubmitButton.clicked.connect(self.runAddItem)
 		self.itemCloseButton.clicked.connect(self.runClose)
 
 		self.setWindowTitle('MC Mod Maker')
-		#print("Item Adder UI Loaded")
 
 	def addBasicItemLayout(self):
 		midTitleHbox = QtWidgets.QHBoxLayout()
@@ -797,7 +798,7 @@ class AddBasicItem(QtWidgets.QWidget):
 		return tabName
 
 	def toggleTextureType(self, pressed):
-		self.textureTypeFlag = pressed
+		self.textureTypeFlag = not pressed
 
 	def loadTypePicker(self):
 		typePicker = QtWidgets.QComboBox()
@@ -827,6 +828,7 @@ class AddBasicItem(QtWidgets.QWidget):
 			self.itemColor = QtWidgets.QColorDialog.getColor()
 			colorName, okPressed = QtWidgets.QInputDialog.getText(self, "Save Color", "Name the color:", QtWidgets.QLineEdit.Normal, "")
 			if okPressed and text != '':
+				self.itemColorPicker.addItem(colorName)
 				color = dict()
 				color["Name"] = colorName
 				color["HTML"] = self.itemColor.name()
@@ -838,11 +840,10 @@ class AddBasicItem(QtWidgets.QWidget):
 					fp.truncate()
 					fp.close()
 					self.modInfo = data
-			self.loadColorPicker()
 		else:
 			for color in self.modInfo["Colors"]:
 				if text == color["Name"]:
-					self.itemColor = QtGui.QColor(color["HTML"])
+					self.itemColor = QtGui.QColor(f"{color['HTML']}")
 
 	def pickTexture(self, text):
 		if text == "Select Directory":
@@ -852,7 +853,8 @@ class AddBasicItem(QtWidgets.QWidget):
 			self.itemTextureDirPicker.addItem("Select Directory")
 
 	def runAddItem(self):
-		try:
+		# try:
+		if True:
 			# print("running runAddItem")
 			item = dict()
 			item["Name"] = self.itemNameLe.text()
@@ -869,8 +871,17 @@ class AddBasicItem(QtWidgets.QWidget):
 				self.modInfo = data
 
 			assetsDir = f"{self.modDir}/src/main/resources/assets/{self.modInfo['ModId']}"
+			mainJavaDir = f"{self.modDir}/src/main/java/{self.modInfo['Author']}/{self.modInfo['Name']}"
+
+			addItemLineContent = f"ItemList.{item['Name']} = new Item(new Item.Properties()" + \
+								 f".group({item['InvTab']}).setRegistryName(location(\"{item['Name']}\")))"
 
 			# Add mod java editing here
+			with open(f"{mainJavaDir}/main.java", 'r+') as mainFile:
+				mainFileContents = mainFile.readlines()
+				if '//***NEXT_ITEM_HERE***' in mainFileContents[-1]:
+					mainFileContents.append(addItemLineContent)
+					# Un-Finished
 
 			# Adding item model json
 			model = dict()
@@ -917,9 +928,9 @@ class AddBasicItem(QtWidgets.QWidget):
 				try:
 					shutil.copy(source, target)
 				except Exception as e:
-					print(f"Could not copy file \'{source}\' into \'{target}\' due to exception:{e}")
-		except Exception as e:
-			print(f"Could not add item due to exception:{e}")
+					print(f"Could not copy file \'{source}\' into \'{target}\' due to exception: {e}")
+		# except Exception as e:
+		#	print(f"Could not add item due to exception:{e}")
 
 	def runClose(self):
 		with open(f"{self.modDir}/modInfo.json", 'r+') as fp:
@@ -928,7 +939,7 @@ class AddBasicItem(QtWidgets.QWidget):
 			json.dump(data, fp, indent=4)
 			fp.truncate()
 			fp.close()
-		EasyEditor.refreshModInfo()
+		self.easyEditor.refreshModInfo()
 		self.close()
 
 
